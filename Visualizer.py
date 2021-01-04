@@ -12,9 +12,10 @@ class MappingGraph:
     def __init__(self, hw_config, model_config):
         global CARE_LAYERS, STEP_CYCLES
         if model_config.Model_type == 'Lenet':
-            CARE_LAYERS = [0, 2, 4]
+            #CARE_LAYERS = [0, 2, 4]
+            CARE_LAYERS = [0, 1, 2, 3, 4]
             #CARE_LAYERS = [2, 4]
-            STEP_CYCLES = 1000
+            STEP_CYCLES = 10000
         elif model_config.Model_type == "Caffenet":
             CARE_LAYERS = [2, 4, 5, 6]
             #CARE_LAYERS = [4, 5, 6]
@@ -142,6 +143,12 @@ class MappingGraph:
         if nlayer > self.max_nlayer:
             self.max_nlayer = nlayer
 
+    def get_mapping(self, nlayer):
+        if nlayer in self.nlayer_mapping:
+            return self.nlayer_mapping[nlayer]
+        else:
+            return -1
+
     def get_layer_color(self, nlayer_plus_one):
         if nlayer_plus_one == 0:
             return (0.5, 0.5, 0.5, 0.1)
@@ -230,11 +237,16 @@ class MappingGraph:
             if not i in CARE_LAYERS:
                 continue
             if self.model_config.layer_list[i].layer_type == 'convolution' or self.model_config.layer_list[i].layer_type == 'fully':
-                show_layers.append(i)
-                layer_height.append(model.input_h[i])
-                layer_width.append(model.input_w[i])
-                model_height += model.input_h[i]
-                model_width = max(model_width, model.input_w[i])
+                h = model.input_h[i]
+                w = model.input_w[i]
+            else:
+                h = 1
+                w = 1
+            show_layers.append(i)
+            layer_height.append(h)
+            layer_width.append(w)
+            model_height += h
+            model_width = max(model_width, w)
         total_width = model_width * 2 + 3 + 1
         total_height = model_height + height_padding * (len(show_layers) + 1)
 
@@ -242,7 +254,7 @@ class MappingGraph:
         model_color = [0] * nlayers
         v=-1
         for i in range(0, nlayers):
-            model_color[i] = self.get_layer_color(self.nlayer_mapping[show_layers[i]] + 1)
+            model_color[i] = self.get_layer_color(self.get_mapping(show_layers[i]) + 1)
             if show_layers[i] in active_layers:
                 t = list(model_color[i])
                 t[3] = 0.8
@@ -277,42 +289,43 @@ class MappingGraph:
         current_axis = plt.gca()
         padding = 0.1
         for k in range(0, nlayers):
-            model_G = nx.grid_2d_graph(layer_width[k], layer_height[k])
-            model_G.remove_edges_from(model_G.edges)
+            if self.model_config.layer_list[k].layer_type == 'convolution' or self.model_config.layer_list[k].layer_type == 'fully':
+                model_G = nx.grid_2d_graph(layer_width[k], layer_height[k])
+                model_G.remove_edges_from(model_G.edges)
 
-            p = []
-            for i in range(0, layer_width[k]):
-                for j in range(0, layer_height[k]):
-                    p.append([1+model_width+1+i, layer_height_offset[k]-j])
+                p = []
+                for i in range(0, layer_width[k]):
+                    for j in range(0, layer_height[k]):
+                        p.append([1+model_width+1+i, layer_height_offset[k]-j])
 
-            nodes = list(model_G.nodes)
-            model_pos = {}
-            for i in range(0, len(nodes)):
-                model_pos[nodes[i]] = p[i]
-            nx.draw(model_G, model_pos, node_shape='s', node_color='gray', node_size=int((self.W * 10 / total_width) ** 2))
+                nodes = list(model_G.nodes)
+                model_pos = {}
+                for i in range(0, len(nodes)):
+                    model_pos[nodes[i]] = p[i]
+                nx.draw(model_G, model_pos, node_shape='s', node_color='gray', node_size=int((self.W * 10 / total_width) ** 2))
 
-            x = 1 + model_width + 1 - 0.5 - padding
-            y = layer_height_offset[k] - layer_height[k] + 0.5 - padding
-            current_axis.add_patch(
-                Rectangle((x, y),
-                    width = layer_width[k] + padding*2,
-                    height = layer_height[k] + padding*2,
-                    fill=False
+                x = 1 + model_width + 1 - 0.5 - padding
+                y = layer_height_offset[k] - layer_height[k] + 0.5 - padding
+                current_axis.add_patch(
+                    Rectangle((x, y),
+                        width = layer_width[k] + padding*2,
+                        height = layer_height[k] + padding*2,
+                        fill=False
+                    )
                 )
-            )
 
-            if active_windows != None:
-                for window_id in active_windows:
-                    if show_layers[k] == window_id[0]:
-                        x = 1 + model_width + 1 - 0.5 + window_id[2]
-                        y = layer_height_offset[k] - window_id[3] + 0.5
-                        current_axis.add_patch(
-                            Rectangle((x, y),
-                                width = window_id[4]-window_id[2],
-                                height = window_id[3]-window_id[1],
-                                fill=False, color='red'
+                if active_windows != None:
+                    for window_id in active_windows:
+                        if show_layers[k] == window_id[0]:
+                            x = 1 + model_width + 1 - 0.5 + window_id[2]
+                            y = layer_height_offset[k] - window_id[3] + 0.5
+                            current_axis.add_patch(
+                                Rectangle((x, y),
+                                    width = window_id[4]-window_id[2],
+                                    height = window_id[3]-window_id[1],
+                                    fill=False, color='red'
+                                )
                             )
-                        )
 
 
         # Draw bottom-left and up-right invisible node (for border)

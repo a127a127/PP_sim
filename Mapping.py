@@ -296,8 +296,8 @@ class LIDR(object):
                 o_height  = self.model_info.input_h[nlayer+1]
                 o_width   = self.model_info.input_w[nlayer+1]
                 o_channel = self.model_info.input_c[nlayer+1]
-                for oh in range(o_height):
-                    for ow in range(o_width):
+                for ow in range(o_width):
+                    for oh in range(o_height):
                         for oc in range(o_channel):
                             self.window_order[nlayer].append((oh, ow, oc))
                 
@@ -305,8 +305,8 @@ class LIDR(object):
                 for window in self.window_order[nlayer]:
                     oh, ow, oc = window[0], window[1], window[2]
                     nn = [(nlayer+1, oh, ow, oc), []]
-                    for ph in range(self.model_info.pooling_h[nlayer]):
-                        for pw in range(self.model_info.pooling_w[nlayer]):
+                    for pw in range(self.model_info.pooling_w[nlayer]):
+                        for ph in range(self.model_info.pooling_h[nlayer]):
                             nn[1].append((nlayer, 
                                         oh * self.model_info.pooling_strides[nlayer] + ph,
                                         ow * self.model_info.pooling_strides[nlayer] + pw,
@@ -612,8 +612,8 @@ class HIDR(object):
                 o_height  = self.model_info.input_h[nlayer+1]
                 o_width   = self.model_info.input_w[nlayer+1]
                 o_channel = self.model_info.input_c[nlayer+1]
-                for oh in range(o_height):
-                    for ow in range(o_width):
+                for ow in range(o_width):
+                    for oh in range(o_height):
                         for oc in range(o_channel):
                             self.window_order[nlayer].append((oh, ow, oc))
 
@@ -621,8 +621,8 @@ class HIDR(object):
                 for window in self.window_order[nlayer]:
                     oh, ow, oc = window[0], window[1], window[2]
                     nn = [(nlayer+1, oh, ow, oc), []]
-                    for ph in range(self.model_info.pooling_h[nlayer]):
-                        for pw in range(self.model_info.pooling_w[nlayer]):
+                    for pw in range(self.model_info.pooling_w[nlayer]):
+                        for ph in range(self.model_info.pooling_h[nlayer]):
                             nn[1].append((nlayer, 
                                         oh * self.model_info.pooling_strides[nlayer] + ph,
                                         ow * self.model_info.pooling_strides[nlayer] + pw,

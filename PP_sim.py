@@ -80,7 +80,7 @@ def main():
         print("--- Mapping is finished in %s seconds ---\n" % (end_mapping_time - start_mapping_time))
 
     ### Print layer info ###
-    if False:
+    if True:
         for nlayer in range(model_info.layer_length):
             if model_info.layer_list[nlayer].layer_type == "convolution" or model_info.layer_list[nlayer].layer_type == "fully":
                 strides = model_info.strides[nlayer]
@@ -88,7 +88,11 @@ def main():
                 o_height = model_info.input_h[nlayer+1]
                 o_width = model_info.input_w[nlayer+1]
 
-                print(f'  - {nlayer} {model_info.layer_list[nlayer].layer_type}: [{model_info.input_c[nlayer]}, {model_info.input_h[nlayer]}, {model_info.input_w[nlayer]}] x [{model_info.filter_n[nlayer]}, {model_info.filter_c[nlayer]}, {model_info.filter_h[nlayer]}, {model_info.filter_w[nlayer]}] {strides}, {pad} -> [{model_info.input_c[nlayer+1]}, {o_height}, {o_width}]')
+                print(f'  - {nlayer} {model_info.layer_list[nlayer].layer_type}: [{model_info.input_c[nlayer]}, {model_info.input_h[nlayer]}, {model_info.input_w[nlayer]}] x [{model_info.filter_n[nlayer]}, {model_info.filter_c[nlayer]}, {model_info.filter_h[nlayer]}, {model_info.filter_w[nlayer]}] s: {strides}, p: {pad} -> [{model_info.input_c[nlayer+1]}, {o_height}, {o_width}]')
+            else:
+                o_height = model_info.input_h[nlayer+1]
+                o_width = model_info.input_w[nlayer+1]
+                print(f'  - {nlayer} {model_info.layer_list[nlayer].layer_type}: [{model_info.input_c[nlayer]}, {model_info.input_h[nlayer]}, {model_info.input_w[nlayer]}] x [{model_info.pooling_h[nlayer]}, {model_info.pooling_w[nlayer]}] s: {strides}, p: {pad} -> [{model_info.input_c[nlayer+1]}, {o_height}, {o_width}]')
 
 
     ### Buffer Replacement ###
